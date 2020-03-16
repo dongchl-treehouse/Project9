@@ -109,12 +109,23 @@ router.post('/', asyncHandler(async (req, res) => {
   
   try {
     await User.create(req.body);
+    // Set the status to 201 Created and end the response.
+    res.status(201).location('/').end();
   }catch (error) {
-    throw error;
+    if(error.name === 'SequelizeValidationError'){
+      const errors = error.errors.map(err => err.message);
+      if(errors[0] === 'Oooops! email Address is required'){
+        res.status(401).json(errors);
+      }else{
+        res.status(400).json(errors);
+      }
+    } else if (error.name === 'SequelizeUniqueConstraintError') {
+      const errors = error.errors.map(err => err.message);
+      res.status(401).json(errors);
+    }else {
+      throw error;
+    }
   }
-  
-  // Set the status to 201 Created and end the response.
-  return res.status(201).end();
   
 }));
 

@@ -25,7 +25,7 @@ module.exports = (sequelize) => {
         },
     },
     description: {
-      type:Sequelize.STRING,
+      type:Sequelize.TEXT,
       allowNull: false,
       validate: {
         notNull: {

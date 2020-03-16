@@ -128,32 +128,50 @@ router.post('/',  asyncHandler(async (req, res) => {
     console.log(req.body);
     try {
       const course = await Course.create(req.body);
-      res.status(201).location('/api/courses/${course.id}')
+      res.status(201).location('/api/courses/${course.id}').end();
     }catch (error) {
         console.log(error);
-      throw error;
-    }
-    
-    // Set the status to 201 Created and end the response.
-    return res.status(201).end();
-    
+        if(error.name === 'SequelizeValidationError'){
+            const errors = error.errors.map(err => err.message);
+            res.status(400).json(errors);
+        }else {
+            throw error;
+        }
+    }    
 }));
     
 // PUT /api/courses/:id 204 - Updates a course and returns no content
 router.put('/:id', authenticateUser, asyncHandler(async (req, res) => {    
     try {
       const course = await Course.findByPk(req.params.id);
-      if(req.currentUser.id == course.userId)
-      {
-         await course.update(req.body);
+
+      if(req.body.title && req.body.description){
+        if(req.currentUser.id == course.userId)
+        {
+            try {
+                await course.update(req.body);
+                res.status(204).end();
+                     
+            } catch (error) {
+                if(error.name === 'SequelizeValidationError'){
+                    const errors = error.errors.map(err => err.message);
+                    res.status(400).json(errors);
+                }else {
+                    throw error;
+                }                
+            }
+        }
+        else{
+            res.status(403).json('User is not correct.');
+
+        }
+      }
+      else{
+          res.status(400).json('Title and description are needed.');
       }
     }catch (error) {
-        console.log(error);
       throw error;
-    }
-    
-    return res.status(204).end();
-    
+    }    
 }));
 
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
