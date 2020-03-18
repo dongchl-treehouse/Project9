@@ -101,24 +101,20 @@ router.get('/', authenticateUser, asyncHandler(async(req,res) =>{
 
 router.post('/', asyncHandler(async (req, res) => {
   // Get the user from the request body.
-  const user = req.body;
-  // Hashing the password  
-  console.log(" new user's original password" + user.password); 
-  user.password = bcryptjs.hashSync(user.password);
-  console.log(user.password); 
   
   try {
+    const user = req.body;
+    // Hashing the password  
+    console.log(" new user's original password" + user.password);
+    if (user.password) 
+      user.password = bcryptjs.hashSync(user.password);
     await User.create(req.body);
     // Set the status to 201 Created and end the response.
     res.status(201).location('/').end();
   }catch (error) {
     if(error.name === 'SequelizeValidationError'){
       const errors = error.errors.map(err => err.message);
-      if(errors[0] === 'Oooops! email Address is required'){
-        res.status(401).json(errors);
-      }else{
-        res.status(400).json(errors);
-      }
+      res.status(401).json(errors);
     } else if (error.name === 'SequelizeUniqueConstraintError') {
       const errors = error.errors.map(err => err.message);
       res.status(401).json(errors);

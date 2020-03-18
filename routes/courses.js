@@ -124,7 +124,7 @@ router.get('/:id', asyncHandler(async(req,res) =>{
 }));
 
 // POST /api/courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
-router.post('/',  asyncHandler(async (req, res) => {    
+router.post('/',  authenticateUser, asyncHandler(async (req, res) => {    
     console.log(req.body);
     try {
       const course = await Course.create(req.body);
